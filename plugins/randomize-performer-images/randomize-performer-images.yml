@@ -1,0 +1,10 @@
+name: "Randomize Performer Images"
+description: display random images of performer when visiting a performer page. check README.md for set up.
+version: 1.0
+ui:
+  requires:
+    - CommunityScriptsUILibrary
+  css:
+    - randomize-performer-images.css
+  javascript:
+    - randomize-performer-images.js
