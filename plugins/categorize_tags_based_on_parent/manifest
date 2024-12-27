@@ -1,0 +1,13 @@
+id: categorize-tags-based-on-parent
+name: Categorize Tags Based on Parent
+metadata:
+  description: description
+version: 1.0
+date: "2024-12-06 09:26:19"
+requires: []
+files:
+- LICENSE
+- README.md
+- categorize-tags-based-on-parent.yml
+- categorize-tags-based-on-parent.js
+- categorize-tags-based-on-parent.css
