@@ -1,0 +1,13 @@
+id: randomize-performer-images
+name: Randomize Performer Images
+metadata:
+  description: display random images of performer when visiting a performer page
+version: 1.0
+date: "2024-12-06 09:26:19"
+requires: []
+files:
+- LICENSE
+- README.md
+- randomize-performer-images.yml
+- randomize-performer-images.js
+- randomize-performer-images.css
