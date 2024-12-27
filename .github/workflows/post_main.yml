@@ -20,6 +20,7 @@ jobs:
       with:
         fetch-depth: '0'
     - run: |
+        chmod +x build_site.sh
         ./build_site.sh _site
     - uses: actions/upload-pages-artifact@v3
 
