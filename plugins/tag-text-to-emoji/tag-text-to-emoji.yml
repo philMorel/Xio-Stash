@@ -1,0 +1,8 @@
+name: "Tag Text to Emoji"
+description: changes text to emoji if you are using common tags from stashdb
+version: 1.0
+ui:
+  requires:
+    - CommunityScriptsUILibrary
+  javascript:
+    - tag-text-to-emoji.js
