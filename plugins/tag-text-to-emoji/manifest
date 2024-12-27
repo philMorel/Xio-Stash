@@ -1,0 +1,13 @@
+id: tag-text-to-emoji
+name: Tag Text to Emoji
+metadata:
+  description: displays emojis instead of text for commonly used tags based on stashdb
+version: 1.0
+date: "2024-12-06 09:26:19"
+requires: []
+files:
+- LICENSE
+- README.md
+- tag-text-to-emoji.yml
+- tag-text-to-emoji.js
+- tag-text-to-emoji.css
