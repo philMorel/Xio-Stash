@@ -1,0 +1,12 @@
+id:     display-tag-image-with-tag
+name: Display Tag Image with Tag
+metadata:
+  description: any page in stash that has clickable tag, instead of showing the tag name only, show the image of the tag above it.
+version: 1.0
+date: "2024-12-06 09:26:19"
+requires: []
+files:
+- LICENSE
+- README.md
+- display-tag-image-with-tag.yml
+- display-tag-image-with-tag.js
