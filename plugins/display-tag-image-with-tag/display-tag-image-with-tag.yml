@@ -1,0 +1,8 @@
+name: "Display Tag Image With Tag"
+description: any page in stash that has clickable tag, instead of showing the tag name only, show the image of the tag above it.
+version: 1.0
+ui:
+  requires:
+    - CommunityScriptsUILibrary
+  javascript:
+    - display-tag-image-with-tag.js
