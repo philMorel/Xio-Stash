@@ -1,31 +1,16 @@
-// ==UserScript==
-// @name        New script localhost
-// @namespace   Violentmonkey Scripts
-// @match       http://localhost:9999/*
-// @grant       unsafeWindow
-// @grant       GM_getResourceText
-// @grant       GM_addStyle
-// @grant       GM_setClipboard
-// @grant       GM_download
-// @version     1.0
-// @author      -
-// @require     https://raw.githubusercontent.com/7dJx1qP/stash-userscripts/master/src/StashUserscriptLibrary.js
-// @run-at      document-idle
-// ==/UserScript==
-
 (function() {
     'use strict';
 
-    const {
-        stash,
-        Stash,
-        waitForElementId,
-        waitForElementClass,
-        waitForElementByXpath,
-        getElementByXpath,
-        getClosestAncestor,
-        updateTextInput,
-    } = unsafeWindow.stash;
+function waitForElementByXpath(xpath, callback) {
+    const interval = setInterval(() => {
+        const element = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+        if (element) {
+            clearInterval(interval);
+            callback(xpath, element);
+        }
+    }, 100); // Check every 100 ms
+}
+
     // Function to replace text content
     async function replaceText() {
         const elements = document.querySelectorAll('.tag-name, .tag-item, .tag-select, .tag-card, #tag-edit');
@@ -175,23 +160,7 @@
                         pre.innerHTML = pre.innerHTML.replace(/[a-zA-Z ]+\(.*?\)/g, `${textInsideParentheses}`);
                     }
                 }
-          if (pre.querySelector('a')) {
-          var anchorElement = pre.querySelector('a')
-          var hrefValue = anchorElement.href;
-          const regex = /%22id%22:%22(\d+)%22/;
-          var match = hrefValue.match(regex);
-          if (match && match[1]) {
-            hrefValue = match[1]; // Return the captured group (the ID)
-            hrefValue = "tag/" + hrefValue + '/image?';
-          }else{
-            hrefValue = hrefValue.replace('/tags/','/tag/');
-            hrefValue = hrefValue  + '/image?';
-          }
-          var final_value = '<img style="height:70px;" src="' + hrefValue + '" />'
-          if (!anchorElement.innerHTML.startsWith('<img')) {
-            anchorElement.innerHTML = final_value + pre.innerHTML
-          }
-          }
+          
 
 
         });
