@@ -1,5 +1,5 @@
 name: "Categorize Tags Based On Parent"
-description: description
+description: colors the tag background image based on the heighest parent and sorts tag with the same heighest parent together
 version: 1.0
 ui:
   requires:
