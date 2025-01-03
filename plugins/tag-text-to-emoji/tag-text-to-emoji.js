@@ -37,7 +37,6 @@ function waitForElementByXpath(xpath, callback) {
             .replace(/\(TP\)/g, "<b>TP</b>")
             .replace(/\(TVP\)/g, "<b>TVP</b>")
             .replace(/\(QUAP\)/g, "<b>QUAP</b>")
-            .replace(/Ball/g, "⚽⚽")
             .replace(/Balls?/g, "⚽⚽")
             .replace(/Breasts?/g, "🍈🍈")
             .replace(/Fingers?/g, "🖕")
