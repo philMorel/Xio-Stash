@@ -7,4 +7,4 @@ ui:
   css:
     - randomize-performer-images-using-gallery.css
   javascript:
-    - randomize-performer-imagess-using-gallery.js
+    - randomize-performer-images-using-gallery.js
