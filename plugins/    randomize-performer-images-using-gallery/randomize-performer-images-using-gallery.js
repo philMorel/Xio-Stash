@@ -75,7 +75,7 @@
         const currentPath = window.location.pathname;
         const match = currentPath.match(regex);
         const performerIdFromRegex = match ? match[1] : null;
-        const performerID = performerIdFromRegex;
+        const performerID = await performerIdFromRegex;
         const imagesArray = await fetchPerformerImagesByName(performerID);
 
         if (imagesArray && imagesArray.images) {
