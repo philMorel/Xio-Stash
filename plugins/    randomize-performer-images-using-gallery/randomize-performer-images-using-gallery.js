@@ -30,18 +30,24 @@
     const fetchPerformerImagesByName = async (performerName) => {
         const query = `
         query {
-            findImages(
-                image_filter: { galleries_filter: { path: { value: "-Performer Galleries/${performerName}", modifier: MATCHES_REGEX }}}
-            ) {
-                images {
-                    id
-                    visual_files {
-                        ... on ImageFile { width height }
-                        ... on VideoFile { width height }
-                    }
-                }
-            }
+  findImages(
+    image_filter: {galleries_filter: {performers: {value: ["31"], modifier: INCLUDES_ALL}}}
+  ) {
+    images {
+      id
+      visual_files {
+        ... on ImageFile {
+          width
+          height
         }
+        ... on VideoFile {
+          width
+          height
+        }
+      }
+    }
+  }
+}
         `;
         try {
             const response = await fetch('/graphql', {
