@@ -32,6 +32,7 @@
         query {
   findImages(
     image_filter: {galleries_filter: {performers: {value: ["31"], modifier: INCLUDES_ALL}}}
+ , filter: {sort: "random", per_page: 150} 
   ) {
     images {
       id
