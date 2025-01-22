@@ -27,11 +27,11 @@
     }
     
     // Fetch performer images based on their name
-    const fetchPerformerImagesByName = async (performerName) => {
+    const fetchPerformerImagesByName = async (performerID) => {
         const query = `
         query {
   findImages(
-    image_filter: {galleries_filter: {performers: {value: ["${performerName}"], modifier: INCLUDES_ALL}}}
+    image_filter: {galleries_filter: {performers: {value: ["${performerID}"], modifier: INCLUDES_ALL}}}
  , filter: {sort: "random", per_page: 150} 
   ) {
     images {
@@ -71,8 +71,13 @@
     async function updateDOM() {
         const tallImages = [];
         const wideImages = [];
-        const performerName = (await waitForElement('.performer-name')).innerText.trim();
-        const imagesArray = await fetchPerformerImagesByName(performerName);
+        const regex = /performers\/(\d+)/;
+        const currentPath = window.location.pathname;
+        const match = currentPath.match(regex);
+        const performerIdFromRegex = match ? match[1] : null;
+        const performerID = performerIdFromRegex;
+        console.log(performerID)
+        const imagesArray = await fetchPerformerImagesByName(performerID);
 
         if (imagesArray && imagesArray.images) {
             imagesArray.images.forEach(image => {
