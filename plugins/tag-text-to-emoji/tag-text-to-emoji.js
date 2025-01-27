@@ -141,8 +141,8 @@ function waitForElementByXpath(xpath, callback) {
             .replace(/Sunlit/g, "☀️") // Sun
             .replace(/Sweaty/g, "😅") // Grinning Face with Sweat
             .replace(/Whispering/g, "🤫") // Shushing Face
-            .replace(/Girl/g, "👧") // Grinning Face with Sweat
-            .replace(/Boy/g, "👦") // Shushing Face
+            .replace(/Girls?\b/g, "👧") // Grinning Face with Sweat
+            .replace(/Boys?\b/g, "👦") // Shushing Face
 
 
           const matches = pre.innerHTML.match(/\((.*?)\)/g);
