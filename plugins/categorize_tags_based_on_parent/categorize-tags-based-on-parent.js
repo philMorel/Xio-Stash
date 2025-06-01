@@ -21,6 +21,10 @@
                 if (element) {
                     clearInterval(intervalId); // Stop checking when the element is found
                     resolve(element); // Resolve with the found element
+                } else if (!document.body.contains(document.querySelector(selector.split(' ')[0] || selector))) {
+                     // Basic check to stop waiting if a potential parent element is removed
+                     clearInterval(intervalId);
+                     resolve(null); // Resolve with null if parent is removed
                 }
             }, 100); // Check every 100 milliseconds
         });
@@ -197,14 +201,8 @@
         }
     }
     
-    // Handle path change events
-    function handlePathChange() {
-        if (window.location.pathname.startsWith("/scenes/") && window.location.pathname !== "/scenes") {
-            updateDOM(); // Existing logic for individual scene pages
-        } else if (window.location.pathname === "/scenes") {
-            processSceneList(); // New logic for the scene list page
-        }
-    }
+    // Store the MutationObserver instance so we can disconnect it later
+    let sceneListObserver = null;
 
     // New function to handle the scene list page
     async function processSceneList() {
@@ -213,21 +211,31 @@
         // Get plugin configuration
         const config = await getPluginConfig();
         const showParentTagName = config.showParentTagName === true; // Default to false if not set
-        
+
+        // If an observer is already active, disconnect it before creating a new one
+        if (sceneListObserver) {
+            sceneListObserver.disconnect();
+            console.log("Disconnected previous scene list observer.");
+        }
+
         // Use MutationObserver to watch for the popover
-        const observer = new MutationObserver(async (mutations) => {
+        sceneListObserver = new MutationObserver(async (mutations) => {
             for (const mutation of mutations) {
                 if (mutation.addedNodes) {
                     for (const node of mutation.addedNodes) {
                         // Check if the added node is the popover element or contains it
                         if (node.nodeType === 1 && (node.id === 'popover' || node.querySelector('#popover'))) {
-                            console.log("Popover detected. Processing tags...");
+                            console.log("Popover detected. Checking for tags...");
                             const popoverElement = node.id === 'popover' ? node : node.querySelector('#popover');
                             if (popoverElement) {
-                                // Wait a moment for the popover content to be fully rendered
-                                // This might need adjustment based on how fast the popover content loads
-                                await new Promise(resolve => setTimeout(resolve, 50)); 
-                                await processTagsInElement(popoverElement, showParentTagName);
+                                // Find tag elements directly within the detected popover
+                                const tagElements = popoverElement.querySelectorAll('.tag-name, .tag-item, .tag-card');
+
+                                if (tagElements.length > 0) {
+                                     console.log(`Found ${tagElements.length} tags in popover. Processing...`);
+                                     // Process the found tags within the popover element
+                                     await processTagsInElement(popoverElement, showParentTagName);
+                                }
                             }
                         }
                     }
@@ -236,29 +244,46 @@
         });
 
         // Start observing the document body for childList changes
-        observer.observe(document.body, { childList: true, subtree: true });
+        // The observer will be disconnected when navigating away from /scenes
+        sceneListObserver.observe(document.body, { childList: true, subtree: true });
 
-        // We might need to disconnect the observer when navigating away
-        // This can be done by storing the observer and disconnecting in handlePathChange
-        // Or, since we are only processing for /scenes, the observer can persist
-        // for the lifetime of the /scenes page visit.
-        // For now, let's keep it simple and let it persist.
+        console.log("Scene list observer started.");
     }
 
-    // Override history pushState and replaceState to handle navigation
-    const originalPushState = history.pushState;
-    history.pushState = function (state, title, url) {
-        originalPushState.apply(this, arguments);
-        handlePathChange(); // Check for path change on pushState
-    };
+    // Use csLib.PathElementListener to trigger logic based on path and element availability
 
-    const originalReplaceState = history.replaceState;
-    history.replaceState = function (state, title, url) {
-        originalReplaceState.apply(this, arguments);
-        handlePathChange(); // Check for path change on replaceState
-    };
+    // Listener for the Scene List page (/scenes)
+    // Wait for a stable element on the scene list page (e.g., .scene-card) to ensure the page is loaded,
+    // then start the MutationObserver to watch for the popover.
+    csLib.PathElementListener('/scenes', '.scene-card', () => {
+        console.log('Scene List page (/scenes) detected and .scene-card appeared. Starting MutationObserver...');
+        // Call the function that sets up the MutationObserver for the popover
+        processSceneList();
+    });
 
-    // Initial path detection to update content if on a performer page
-    handlePathChange();
-    window.addEventListener('popstate', handlePathChange); // Listen for back/forward navigation
+    // Listener for individual Scene Detail pages (/scenes/:id)
+    // Wait for a selector present on detail pages when content is loaded, e.g., .vjs-control-text
+    csLib.PathElementListener('/scenes/', '.vjs-control-text', () => {
+        console.log('Scene Detail page (/scenes/:id) detected and .vjs-control-text appeared. Updating DOM...');
+        // Call the function that handles the individual scene page logic
+        updateDOM();
+    });
+
+    // Listener to disconnect the MutationObserver when navigating away from the scene list page
+    csLib.PathElementListener('/', 'body', (bodyElement) => {
+        // This listener is effectively always active after the initial load, watching for any path.
+        // Use stash:location event to check the path more accurately.
+        PluginApi.Event.addEventListener("stash:location", (e) => {
+            const currentPath = e.detail.data.location.pathname;
+            console.log(`Navigated to: ${currentPath}`);
+            // If the current path is NOT /scenes, disconnect the observer if it exists
+            if (!currentPath.startsWith('/scenes') && sceneListObserver) {
+                console.log('Navigated away from scene paths. Disconnecting scene list observer.');
+                sceneListObserver.disconnect();
+                sceneListObserver = null; // Clear the reference
+            }
+             // If the current path IS /scenes, the other PathElementListener will handle starting the observer when .scene-card appears.
+        });
+    });
+
 })();
