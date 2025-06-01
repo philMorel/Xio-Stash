@@ -1,6 +1,18 @@
 (function () {
     'use strict';
 
+    // Function to get plugin configuration using csLib
+    async function getPluginConfig() {
+        try {
+            // Use the plugin ID defined in the manifest file
+            const config = await csLib.getConfiguration('categorize-tags-based-on-parent', {});
+            return config;
+        } catch (error) {
+            console.error('Error fetching plugin configuration with csLib:', error);
+            return {};
+        }
+    }
+
     // Function that waits for a DOM element to appear
     async function waitForElement(selector) {
         return new Promise(resolve => {
@@ -62,6 +74,10 @@
 
     // Update the DOM with fetched images and sort them by background color
     async function updateDOM() {
+        // Get plugin configuration
+        const config = await getPluginConfig();
+        const showParentTagName = config.showParentTagName === true; // Default to false if not set
+        
         const waitss = await waitForElement('.vjs-control-text');
         const elements = document.querySelectorAll('.tag-name, .tag-item, .tag-card');
         const elementsWithTags = [];
@@ -87,8 +103,8 @@
                     pre.style.backgroundColor = stringToColor(parent_tag[1]);
                     pre.style.color = 'white';
 
-                    // Prepend parent tag name to the inner div's innerHTML if it exists
-                    if (parent_tag[1] !== "No Parent") {
+                    // Prepend parent tag name to the inner div's innerHTML if it exists and option is enabled
+                    if (showParentTagName && parent_tag[1] !== "No Parent") {
                         const parentTagNameDisplay = `${parent_tag[1]}: `;
                         innerDiv.innerHTML = parentTagNameDisplay + innerDiv.innerHTML; // Prepend to inner div's content
                     }
