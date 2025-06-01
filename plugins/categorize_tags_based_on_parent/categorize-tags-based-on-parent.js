@@ -84,7 +84,18 @@
                 
                 pre.style.backgroundColor = stringToColor(parent_tag[1]);
                 pre.style.color = 'white';
-                pre.innerHTML = `<div class="arrange">` + pre.innerHTML + `</div>`;
+                // Modify the innerHTML to display "HighestParentTag: TagName"
+                // parent_tag[1] is the topmost_parent_name
+                // pre.innerHTML contains the original tag name inside a link
+                // We need to extract the original tag name and prepend the parent tag name
+                const originalTagName = anchorElement.textContent; // Assuming the tag name is the text content of the anchor tag
+                
+                // Check if the parent tag is "No Parent" and adjust the display accordingly
+                if (parent_tag[1] === "No Parent") {
+                    pre.innerHTML = `<div class="arrange">${originalTagName}</div>`;
+                } else {
+                    pre.innerHTML = `<div class="arrange">${parent_tag[1]}: ${originalTagName}</div>`;
+                }
             }
         }
     
