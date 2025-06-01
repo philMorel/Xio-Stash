@@ -6,9 +6,3 @@ ui:
     - CommunityScriptsUILibrary
   javascript:
     - categorize-tags-based-on-parent.js
-
-settings:
-  showParentTagName:
-    displayName: Show Parent Tag Name
-    description: Display the parent tag name before the tag name
-    type: BOOLEAN
