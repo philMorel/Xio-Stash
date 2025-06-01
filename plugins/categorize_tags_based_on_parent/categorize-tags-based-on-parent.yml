@@ -4,7 +4,5 @@ version: 1.0
 ui:
   requires:
     - CommunityScriptsUILibrary
-  css:
-    - categorize-tags-based-on-parent.css
   javascript:
     - categorize-tags-based-on-parent.js

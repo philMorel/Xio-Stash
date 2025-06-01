@@ -67,34 +67,31 @@
         const elementsWithTags = [];
     
         for (const pre of elements) { // Change to for...of to allow await
-            if (pre.querySelector('a')) {
-                var anchorElement = pre.querySelector('a');
-                var hrefValue = anchorElement.href;
-                const regex = /%22id%22:%22(\d+)%22/;
-                var match = hrefValue.match(regex);
-                if (match && match[1]) {
-                    hrefValue = match[1];
-                }
-    
-                var parent_tag = await fetchparenttagbyid(hrefValue); 
-                if (parent_tag == null) { parent_tag = [0, "No Parent", hrefValue]; }
-    
-                // Store the element along with parent_tag for sorting later
-                elementsWithTags.push({ element: pre, parentTag: parent_tag });
-                
-                pre.style.backgroundColor = stringToColor(parent_tag[1]);
-                pre.style.color = 'white';
-                // Modify the innerHTML to display "HighestParentTag: TagName"
-                // parent_tag[1] is the topmost_parent_name
-                // pre.innerHTML contains the original tag name inside a link
-                // We need to extract the original tag name and prepend the parent tag name
-                const originalTagName = anchorElement.textContent; // Assuming the tag name is the text content of the anchor tag
-                
-                // Check if the parent tag is "No Parent" and adjust the display accordingly
-                if (parent_tag[1] === "No Parent") {
-                    pre.innerHTML = `<div class="arrange">${originalTagName}</div>`;
-                } else {
-                    pre.innerHTML = `<div class="arrange">${parent_tag[1]}: ${originalTagName}</div>`;
+            const anchorElement = pre.querySelector('a');
+            if (anchorElement) {
+                const innerDiv = anchorElement.querySelector('div'); // Find the inner div
+                if (innerDiv) {
+                    var hrefValue = anchorElement.href;
+                    const regex = /%22id%22:%22(\d+)%22/;
+                    var match = hrefValue.match(regex);
+                    if (match && match[1]) {
+                        hrefValue = match[1];
+                    }
+        
+                    var parent_tag = await fetchparenttagbyid(hrefValue); 
+                    if (parent_tag == null) { parent_tag = [0, "No Parent", hrefValue]; }
+        
+                    // Store the element along with parent_tag for sorting later
+                    elementsWithTags.push({ element: pre, parentTag: parent_tag });
+                    
+                    pre.style.backgroundColor = stringToColor(parent_tag[1]);
+                    pre.style.color = 'white';
+
+                    // Prepend parent tag name to the inner div's innerHTML if it exists
+                    if (parent_tag[1] !== "No Parent") {
+                        const parentTagNameDisplay = `${parent_tag[1]}: `;
+                        innerDiv.innerHTML = parentTagNameDisplay + innerDiv.innerHTML; // Prepend to inner div's content
+                    }
                 }
             }
         }
@@ -106,10 +103,28 @@
     async function sortElementsByParentTag(elementsWithTags) {
         // Sort elements based on the first value of parent_tag
         elementsWithTags.sort((a, b) => a.parentTag[0] - b.parentTag[0]);
-    
-        // Find the <h6>Tags</h6> element
-        const tagHeader = Array.from(document.querySelectorAll('h6')).find(h6 => h6.textContent.trim() === 'Tags');
-    
+
+        // Find the <h6> tag that is immediately followed by a tag element
+        // This is a more robust way to find the tag header regardless of language
+        let tagHeader = null;
+        const possibleTagElements = document.querySelectorAll('.tag-name, .tag-item, .tag-card');
+        if (possibleTagElements.length > 0) {
+            let prevElement = possibleTagElements[0].previousElementSibling;
+            while(prevElement) {
+                if (prevElement.tagName === 'H6') {
+                    tagHeader = prevElement;
+                    break;
+                }
+                prevElement = prevElement.previousElementSibling;
+            }
+        }
+
+        // If tagHeader is not found, we cannot proceed with sorting and DOM manipulation
+        if (!tagHeader) {
+            console.error('Could not find the tag header element (<h6> preceding a tag item).');
+            return; // Exit the function if the header is not found
+        }
+
         // Clear out any previous elements after the header
         let nextElement = tagHeader.nextElementSibling;
         while (nextElement && !nextElement.matches('h6')) { // Assuming no other <h6> follows
