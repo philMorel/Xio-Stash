@@ -117,11 +117,17 @@
 
         // Prepend parent tag name to the inner div's innerHTML if it exists and option is enabled
                     // Add a check to see if the element has already been processed
-                    if (showParentTagName && parent_tag[1] !== "No Parent" && !innerDiv.dataset.categorized) {
+                    if (showParentTagName && parent_tag[1] !== "No Parent") {
             const parentTagNameDisplay = `${parent_tag[1]}: `;
-                        // Store the original content before prepending
-                        innerDiv.dataset.originalTagName = innerDiv.innerHTML;
-                 innerDiv.innerHTML = parentTagNameDisplay + innerDiv.innerHTML; // Prepend to inner div's content
+                        
+                        // If already processed, start from original text to avoid duplication
+                        if (innerDiv.dataset.originalTagName) {
+                            innerDiv.innerHTML = parentTagNameDisplay + innerDiv.dataset.originalTagName;
+                        } else {
+                            // Store the original content before prepending
+                            innerDiv.dataset.originalTagName = innerDiv.innerHTML;
+                            innerDiv.innerHTML = parentTagNameDisplay + innerDiv.innerHTML; // Prepend to inner div's content
+                        }
                         // Mark this element as categorized
                         innerDiv.dataset.categorized = 'true';
                     }
@@ -255,7 +261,7 @@
     // Listener for the Scene List page (/scenes)
     // Wait for a stable element on the scene list page (e.g., .scene-card) to ensure the page is loaded,
     // then start the MutationObserver to watch for the popover.
-    csLib.PathElementListener('/scenes', '.scene-card', () => {
+    csLib.PathElementListener('/', '.scene-card', () => {
         console.log('Scene List page (/scenes) detected and .scene-card appeared. Starting MutationObserver...');
         // Call the function that sets up the MutationObserver for the popover
         processSceneList();
@@ -269,6 +275,62 @@
         updateDOM();
     });
 
+    // Listener for the Tags List page (/tags)
+    // Wait for a stable element on the tags list page (e.g., .card-section) to ensure the page is loaded,
+    // then process the tag names.
+    csLib.PathElementListener('/tags', '.card-section', async () => {
+        console.log('Tags List page (/tags) detected and .card-section appeared. Processing tag names...');
+
+        // Get plugin configuration
+        const config = await getPluginConfig();
+        const showParentTagName = config.showParentTagName === true; // Default to false if not set
+
+        if (!showParentTagName) {
+            console.log("showParentTagName is false. Skipping tag name categorization on tags page.");
+            return;
+        }
+
+        // Find all the links within .card-section elements on the page
+        const tagLinks = document.querySelectorAll('div.card-section > a');
+        console.log(`Found ${tagLinks.length} tag links. Processing...`);
+
+        for (const anchorElement of tagLinks) {
+            const h5Element = anchorElement.querySelector('h5');
+            if (h5Element) {
+                const innerDiv = h5Element.querySelector('div');
+                if (innerDiv) {
+                    const hrefValue = anchorElement.href;
+                    const regex = /\/tags\/(\d+)$/;
+                    const match = hrefValue.match(regex);
+
+                    if (match && match[1]) {
+                        const tagId = match[1];
+                        const parent_tag = await fetchparenttagbyid(tagId);
+
+                        if (parent_tag && parent_tag[1] !== "No Parent") {
+                            const parentTagNameDisplay = `${parent_tag[1]}: `;
+                            
+                            // If already processed, start from original text to avoid duplication
+                            if (innerDiv.dataset.originalTagName) {
+                                innerDiv.innerHTML = parentTagNameDisplay + innerDiv.dataset.originalTagName;
+                            } else {
+                                // Store the original content before prepending
+                                innerDiv.dataset.originalTagName = innerDiv.innerHTML;
+                                innerDiv.innerHTML = parentTagNameDisplay + innerDiv.innerHTML; // Prepend to inner div's content
+                            }
+                            // Mark this element as categorized
+                            innerDiv.dataset.categorized = 'true';
+                        } else if (parent_tag == null) { // Handle case where tag might not exist or fetch failed
+                            console.warn(`Could not fetch parent tag for ID: ${tagId}. Skipping.`);
+                        }
+                    } else {
+                        console.warn(`Could not extract tag ID from href: ${hrefValue}`);
+                    }
+                }
+            }
+        }
+    });
+
     // Listener to disconnect the MutationObserver when navigating away from the scene list page
     csLib.PathElementListener('/', 'body', (bodyElement) => {
         // This listener is effectively always active after the initial load, watching for any path.
@@ -276,8 +338,8 @@
         PluginApi.Event.addEventListener("stash:location", (e) => {
             const currentPath = e.detail.data.location.pathname;
             console.log(`Navigated to: ${currentPath}`);
-            // If the current path is NOT /scenes, disconnect the observer if it exists
-            if (!currentPath.startsWith('/scenes') && sceneListObserver) {
+            // If the current path does NOT include '/scenes', disconnect the observer if it exists
+            if (!currentPath.includes('/scenes') && sceneListObserver) {
                 console.log('Navigated away from scene paths. Disconnecting scene list observer.');
                 sceneListObserver.disconnect();
                 sceneListObserver = null; // Clear the reference
