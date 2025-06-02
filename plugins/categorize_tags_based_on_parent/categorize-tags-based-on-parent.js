@@ -28,7 +28,7 @@
       const result = (await response.json()).data.querySQL.rows[0];
       return result || [0, "No Parent", tagid];
     } catch (error) {
-      console.error("Error fetching parent tag by id:", error);
+      // console.error("Error fetching parent tag by id:", error);
       return [0, "No Parent", tagid];
     }
   };
@@ -113,9 +113,9 @@
           insertAfter = element;
         });
       } else {
-        console.error(
-          "Could not find the tag header element (<h6> preceding a tag item) on the scene detail page for sorting.",
-        );
+        // console.error(
+        //   "Could not find the tag header element (<h6> preceding a tag item) on the scene detail page for sorting.",
+        // );
       }
     } else {
       // This logic is for popovers or other containers where tags are children of a common parent
@@ -127,9 +127,9 @@
       }
 
       if (!commonParent) {
-        console.error(
-          "Could not find the common parent element for sorting in a non-document context.",
-        );
+        // console.error(
+        //   "Could not find the common parent element for sorting in a non-document context.",
+        // );
         return;
       }
 
@@ -152,12 +152,12 @@
 
   // New function to handle the scene list page
   async function processSceneList() {
-    console.log("Processing scene list page...");
+    // console.log("Processing scene list page...");
 
     // If an observer is already active, disconnect it before creating a new one
     if (sceneListObserver) {
       sceneListObserver.disconnect();
-      console.log("Disconnected previous scene list observer.");
+      // console.log("Disconnected previous scene list observer.");
     }
 
     // Use MutationObserver to watch for the popover
@@ -170,7 +170,7 @@
               node.nodeType === 1 &&
               (node.id === "popover" || node.querySelector("#popover"))
             ) {
-              console.log("Popover detected. Checking for tags...");
+              // console.log("Popover detected. Checking for tags...");
               const popoverElement =
                 node.id === "popover" ? node : node.querySelector("#popover");
               if (popoverElement) {
@@ -178,9 +178,9 @@
                 const tagElements = popoverElement.querySelectorAll(TAG_SELECTORS);
 
                 if (tagElements.length > 0) {
-                  console.log(
-                    `Found ${tagElements.length} tags in popover. Processing...`,
-                  );
+                  // console.log(
+                  //   `Found ${tagElements.length} tags in popover. Processing...`,
+                  // );
                   // Process the found tags within the popover element
                   await processTagsInElement(popoverElement);
                 }
@@ -197,15 +197,15 @@
       subtree: true,
     });
 
-    console.log("Scene list observer started.");
+    // console.log("Scene list observer started.");
   }
 
   // Helper function to handle both scenes and markers pages
   function handleListPage(currentPath, pageType, elementSelector) {
     if (currentPath.includes(`/${pageType}`)) {
-      console.log(
-        `${pageType.charAt(0).toUpperCase() + pageType.slice(1)} List page (/${pageType}) detected and ${elementSelector} appeared: ${currentPath}. Starting MutationObserver...`,
-      );
+      // console.log(
+      //   `${pageType.charAt(0).toUpperCase() + pageType.slice(1)} List page (/${pageType}) detected and ${elementSelector} appeared: ${currentPath}. Starting MutationObserver...`,
+      // );
       processSceneList();
     }
   }
