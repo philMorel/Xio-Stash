@@ -160,6 +160,9 @@
       // console.log("Disconnected previous scene list observer.");
     }
 
+    // Process tags that are already visible on the page (not in popovers)
+    await processTagsInElement(document);
+
     // Use MutationObserver to watch for the popover
     sceneListObserver = new MutationObserver(async (mutations) => {
       for (const mutation of mutations) {
