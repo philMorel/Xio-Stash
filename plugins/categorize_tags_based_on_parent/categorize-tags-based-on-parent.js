@@ -160,37 +160,57 @@
       // console.log("Disconnected previous scene list observer.");
     }
 
-    // Process tags that are already visible on the page (not in popovers)
-    await processTagsInElement(document);
+    // Process tags in cards that are already visible on the page.
+    // We query for containers instead of all tags to process cards individually.
+    // This avoids freezing by breaking up the work and using the correct sorting context.
+    const existingCards = document.querySelectorAll(
+      ".scene-card, .scene-marker-card",
+    );
+    if (existingCards.length > 0) {
+      const processingPromises = Array.from(existingCards).map((card) =>
+        processTagsInElement(card),
+      );
+      Promise.all(processingPromises); // Fire and forget to avoid blocking UI thread.
+    }
 
-    // Use MutationObserver to watch for the popover
+    // Use MutationObserver to watch for popovers and dynamically added cards
     sceneListObserver = new MutationObserver(async (mutations) => {
-      for (const mutation of mutations) {
-        if (mutation.addedNodes) {
-          for (const node of mutation.addedNodes) {
-            // Check if the added node is the popover element or contains it
-            if (
-              node.nodeType === 1 &&
-              (node.id === "popover" || node.querySelector("#popover"))
-            ) {
-              // console.log("Popover detected. Checking for tags...");
-              const popoverElement =
-                node.id === "popover" ? node : node.querySelector("#popover");
-              if (popoverElement) {
-                // Find tag elements directly within the detected popover
-                const tagElements = popoverElement.querySelectorAll(TAG_SELECTORS);
+      const cardsToProcess = new Set();
+      let popoverElement = null;
 
-                if (tagElements.length > 0) {
-                  // console.log(
-                  //   `Found ${tagElements.length} tags in popover. Processing...`,
-                  // );
-                  // Process the found tags within the popover element
-                  await processTagsInElement(popoverElement);
-                }
-              }
-            }
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType !== 1) continue; // Only process element nodes
+
+          // Check for popover
+          if (node.id === "popover" || node.querySelector("#popover")) {
+            popoverElement =
+              node.id === "popover" ? node : node.querySelector("#popover");
           }
+
+          // Check for new cards
+          if (node.matches(".scene-card, .scene-marker-card")) {
+            cardsToProcess.add(node);
+          }
+          node
+            .querySelectorAll(".scene-card, .scene-marker-card")
+            .forEach((card) => cardsToProcess.add(card));
         }
+      }
+
+      // Process popover if found
+      if (popoverElement) {
+        // console.log("Popover detected. Processing...");
+        await processTagsInElement(popoverElement);
+      }
+
+      // Process any new cards that were added
+      if (cardsToProcess.size > 0) {
+        // console.log(`Found ${cardsToProcess.size} new cards. Processing...`);
+        const cardPromises = Array.from(cardsToProcess).map((card) =>
+          processTagsInElement(card),
+        );
+        await Promise.all(cardPromises);
       }
     });
 
